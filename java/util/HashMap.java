@@ -617,28 +617,36 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @param hash hash for key
      * @param key the key
      * @param value the value to put
-     * @param onlyIfAbsent if true, don't change existing value
+     * @param onlyIfAbsent if true, don't change existing value 是否替换原值
      * @param evict if false, the table is in creation mode.
      * @return previous value, or null if none
      */
     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) {
         Node<K,V>[] tab; Node<K,V> p; int n, i;
+        // 数组为空需要初始化
         if ((tab = table) == null || (n = tab.length) == 0)
+            // 数组初始化操作（resize()既可以用来调整数组大小，还可以用来初始化数据）
             n = (tab = resize()).length;
+        // 判断计算出来的索引位置是否有元素，如果没有元素则直接插入
         if ((p = tab[i = (n - 1) & hash]) == null)
             tab[i] = newNode(hash, key, value, null);
         else {
+            // 如果计算出来的数组索引位置有元素，则进行转链表或者红黑树操作
             Node<K,V> e; K k;
+            // 如果key一致的场景则替换旧的元素
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 e = p;
             else if (p instanceof TreeNode)
+                // 红黑树场景，把节点添加到树中
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
             else {
+                // 链表场景，将要添加的元素放在链表末尾
                 for (int binCount = 0; ; ++binCount) {
                     if ((e = p.next) == null) {
                         p.next = newNode(hash, key, value, null);
+                        // 插入第八个元素的时候转换为红黑树
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                             treeifyBin(tab, hash);
                         break;
@@ -653,13 +661,16 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 V oldValue = e.value;
                 if (!onlyIfAbsent || oldValue == null)
                     e.value = value;
+                // 空实现，可以在插入元素后做一些操作
                 afterNodeAccess(e);
                 return oldValue;
             }
         }
         ++modCount;
+        // 容量到达数组长度*扩容因子，则进行扩容操作
         if (++size > threshold)
             resize();
+        // 空实现，可以在插入元素后做一些操作
         afterNodeInsertion(evict);
         return null;
     }
