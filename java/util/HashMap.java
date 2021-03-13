@@ -244,6 +244,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * The load factor used when none specified in constructor.
      */
+    // 不是最优，最优应该是通过牛顿二项式确定扩容因子
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     /**
@@ -254,6 +255,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * tree removal about conversion back to plain bins upon
      * shrinkage.
      */
+    // 树化的阈值(根据泊松分布确定的值)
     static final int TREEIFY_THRESHOLD = 8;
 
     /**
@@ -261,6 +263,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
      * most 6 to mesh with shrinkage detection under removal.
      */
+    // 链表化阈值
     static final int UNTREEIFY_THRESHOLD = 6;
 
     /**
@@ -269,6 +272,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
      * between resizing and treeification thresholds.
      */
+    // 最小树化容量
     static final int MIN_TREEIFY_CAPACITY = 64;
 
     /**
@@ -374,6 +378,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns a power of two size for the given target capacity.
      */
+    // 返回一个2的指数次幂数值
     static final int tableSizeFor(int cap) {
         int n = cap - 1;
         n |= n >>> 1;
@@ -453,6 +458,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             throw new IllegalArgumentException("Illegal load factor: " +
                                                loadFactor);
         this.loadFactor = loadFactor;
+        // 根据数组容量初始化阈值
         this.threshold = tableSizeFor(initialCapacity);
     }
 
@@ -628,8 +634,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if ((tab = table) == null || (n = tab.length) == 0)
             // 数组初始化操作（resize()既可以用来调整数组大小，还可以用来初始化数据）
             n = (tab = resize()).length;
-        // 判断计算出来的索引位置是否有元素，如果没有元素则直接插入
+        // 判断计算出来的索引位置是否有元素
         if ((p = tab[i = (n - 1) & hash]) == null)
+            // 如果没有元素则直接插入
             tab[i] = newNode(hash, key, value, null);
         else {
             // 如果计算出来的数组索引位置有元素，则进行转链表或者红黑树操作
@@ -648,6 +655,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         p.next = newNode(hash, key, value, null);
                         // 插入第八个元素的时候转换为红黑树
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                            // 链表转红黑树
                             treeifyBin(tab, hash);
                         break;
                     }
@@ -694,8 +702,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
+            // table双倍扩容
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
+                // 扩容阈值双倍扩容
                 newThr = oldThr << 1; // double threshold
         }
         else if (oldThr > 0) // initial capacity was placed in threshold
@@ -714,6 +724,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
         table = newTab;
         if (oldTab != null) {
+            // 数组迁移
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
@@ -764,6 +775,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
+        // 数组等于未初始化或者容量小于64优先扩容
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
         else if ((e = tab[index = (n - 1) & hash]) != null) {
